@@ -1,0 +1,6 @@
+.vscode/
+n_puzzle
+*.o
+
+# 42 puzzle generator
+puzzle_generator.py
