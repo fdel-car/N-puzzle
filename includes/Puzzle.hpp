@@ -21,6 +21,7 @@ class Puzzle {
   int solve(void);
 
  private:
+  int _moveCount = 0;
   std::priority_queue<Node *, std::vector<Node *>, NodePtrCmp> _openSet;
   std::unordered_map<std::string, Node *> _lookupTable;
   std::unordered_set<Node *, std::hash<Node *>, NodePtrEqual> _closeSet;

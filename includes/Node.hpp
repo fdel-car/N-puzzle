@@ -14,7 +14,7 @@ class Node {
   int gScore;
   int hScore;
   int fScore;
-  Node *parent;
+  Node *parent = nullptr;
   std::vector<u_char> tiles;
   std::array<int, 2> emptyTileCoords;
 

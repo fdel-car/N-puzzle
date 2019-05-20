@@ -9,7 +9,9 @@ Puzzle::Puzzle(const std::vector<u_char>& firstGrid)
   _lookupTable[firstNode->ID] = firstNode;
 }
 
-Puzzle::~Puzzle(void) {}
+Puzzle::~Puzzle(void) {
+  // Delete all nodes in containers
+}
 
 const std::vector<u_char> Puzzle::_initFinalGrid(void) const {
   u_char value = 1;
@@ -39,8 +41,11 @@ const std::vector<u_char> Puzzle::_initFinalGrid(void) const {
 void Puzzle::_printPath(const Node* node, bool isLastNode) {
   if (node == nullptr) return;
   _printPath(node->parent, false);
-  std::cout << *node;
-  if (!isLastNode) std::cout << std::endl;
+  std::cout << *node << std::endl;
+  if (!isLastNode)
+    _moveCount++;
+  else
+    std::cout << "Number of required moves: " << _moveCount << std::endl;
 }
 
 bool Puzzle::_isSwapSafe(const std::array<int, 2>& emptyTileCoords,
@@ -80,6 +85,8 @@ int Puzzle::solve(void) {
         delete neighbor;
         continue;
       } else {
+        // this update could be *dangerous* the priority queue is not reordered,
+        // look into this
         ((*it).second)->parent = node;
         ((*it).second)->gScore = neighbor->gScore;
         ((*it).second)->fScore =
