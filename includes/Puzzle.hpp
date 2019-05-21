@@ -18,7 +18,7 @@ class Puzzle {
   static int totalSize;
   static int nbrLength;
 
-  int solve(void);
+  int Solve(void);
 
  private:
   int _moveCount = 0;

@@ -4,7 +4,7 @@
 
 class Heuristics {
  public:
-  static Puzzle *puzzle;
+  static Puzzle *puzzleInstance;
 
   static int manhattanDistance(const std::vector<u_char> &tiles);
 

@@ -3,7 +3,7 @@
 
 Puzzle::Puzzle(const std::vector<u_char>& firstGrid)
     : finalGrid(_initFinalGrid()) {
-  Heuristics::puzzle = this;
+  Heuristics::puzzleInstance = this;
   Node* firstNode = new Node(firstGrid);
   _openSet.push(firstNode);
   _lookupTable[firstNode->ID] = firstNode;
@@ -11,6 +11,13 @@ Puzzle::Puzzle(const std::vector<u_char>& firstGrid)
 
 Puzzle::~Puzzle(void) {
   // Delete all nodes in containers
+  _lookupTable.clear();
+  while (!_openSet.empty()) {
+    delete _openSet.top();
+    _openSet.pop();
+  }
+  for (auto it = _closeSet.begin(); it != _closeSet.end(); it++) delete *it;
+  _closeSet.clear();
 }
 
 const std::vector<u_char> Puzzle::_initFinalGrid(void) const {
@@ -45,7 +52,7 @@ void Puzzle::_printPath(const Node* node, bool isLastNode) {
   if (!isLastNode)
     _moveCount++;
   else
-    std::cout << "Number of required moves: " << _moveCount << std::endl;
+    std::cout << "Number of required moves: " << _moveCount << '.' << std::endl;
 }
 
 bool Puzzle::_isSwapSafe(const std::array<int, 2>& emptyTileCoords,
@@ -56,7 +63,7 @@ bool Puzzle::_isSwapSafe(const std::array<int, 2>& emptyTileCoords,
   return true;
 }
 
-int Puzzle::solve(void) {
+int Puzzle::Solve(void) {
   while (!_openSet.empty()) {
     Node* node = _openSet.top();
     if (node->hScore == 0) {
@@ -85,12 +92,19 @@ int Puzzle::solve(void) {
         delete neighbor;
         continue;
       } else {
-        // this update could be *dangerous* the priority queue is not reordered,
-        // look into this
+        // This update could be *dangerous* the priority queue is not reordered
         ((*it).second)->parent = node;
         ((*it).second)->gScore = neighbor->gScore;
         ((*it).second)->fScore =
             ((*it).second)->gScore + ((*it).second)->hScore;
+
+        // One solution to reorder the priority queue after an update,
+        // a bit too hackish and slow
+        // /*
+        std::make_heap(const_cast<Node**>(&_openSet.top()),
+                       const_cast<Node**>(&_openSet.top() + _openSet.size()),
+                       NodePtrCmp());
+        // */
       }
     }
   }

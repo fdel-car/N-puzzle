@@ -25,14 +25,15 @@ static std::string removeExtraSpaces(const std::string &input) {
   return output;
 }
 
-// There is a lot to do left, handle all errors cases, catch the exceptions...
 InputHandler::InputHandler(std::istream &is) {
   std::string line, tile;
   bool firstLineParsed = false;
   size_t spacePos, searchStart = 0;
   int x = 0, y = 0;
+  _lineCount = 0;
 
   while (std::getline(is, line)) {
+    _lineCount++;
     // Remove everything after the hash
     size_t hash = line.find('#');
     line = line.substr(0, hash);
@@ -47,12 +48,18 @@ InputHandler::InputHandler(std::istream &is) {
         Puzzle::nbrLength = std::to_string(Puzzle::totalSize).length();
         firstGrid.resize(Puzzle::totalSize, 0);
       } else
-        throw std::invalid_argument(errorFont + line + resetFont +
-                                    " is not a valid integer value.");
+        throw std::invalid_argument(
+            _errorString(line, " is not a valid integer value."));
       firstLineParsed = true;
     } else {
       for (x = 0; x < Puzzle::N; x++) {
         spacePos = line.find(' ', searchStart);
+        if (spacePos == std::string::npos && x < Puzzle::N - 1)
+          throw std::logic_error(
+              _errorString(line, ", missing one (or more) value(s)."));
+        else if (spacePos != std::string::npos && x == Puzzle::N - 1)
+          throw std::logic_error(
+              _errorString(line, ", too many values inside this row."));
         tile = line.substr(searchStart, spacePos - searchStart);
         if (std::regex_match(tile, _nbrRegex)) {
           int value = std::stoi(tile);
@@ -62,8 +69,8 @@ InputHandler::InputHandler(std::istream &is) {
           }
           firstGrid[x + y * Puzzle::N] = static_cast<u_char>(value);
         } else
-          throw std::invalid_argument(errorFont + tile + resetFont +
-                                      " is not a valid integer value.");
+          throw std::invalid_argument(
+              _errorString(tile, " is not a valid integer value."));
         searchStart = spacePos + 1;
       }
       y++;
@@ -72,3 +79,9 @@ InputHandler::InputHandler(std::istream &is) {
 }
 
 InputHandler::~InputHandler(void) {}
+
+const std::string InputHandler::_errorString(const std::string &elem,
+                                             const std::string &error) const {
+  return ("line " + std::to_string(_lineCount) + ": " + errorFont + elem +
+          resetFont + error);
+}

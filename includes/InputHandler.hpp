@@ -14,10 +14,14 @@ class InputHandler {
   std::vector<u_char> firstGrid;
 
  private:
+  int _lineCount;
   const std::regex _nbrRegex = std::regex("[0-9]+");
 
   InputHandler(void);
   InputHandler(InputHandler const &src);
+
+  const std::string _errorString(const std::string &elem,
+                                 const std::string &error) const;
 
   InputHandler &operator=(InputHandler const &rhs);
 };

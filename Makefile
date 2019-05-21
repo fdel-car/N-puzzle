@@ -3,7 +3,7 @@ SRCS_DIR := ./srcs
 OBJS_DIR := ./objs
 CC := clang++
 OS := $(shell uname)
-CFLAGS := -Wall -Wextra -Werror -Wno-missing-braces -std=c++11 # -O2 # Optimization flag
+CFLAGS := -Wall -Wextra -Werror -Wno-missing-braces -std=c++11 -O2 # Optimization flag
 iw : CFLAGS := -w
 LIBS :=
 HEADERS := -I./includes/
