@@ -14,9 +14,10 @@ class Node {
   int gScore;
   int hScore;
   int fScore;
-  Node *parent = nullptr;
   std::vector<u_char> tiles;
+  std::vector<u_char> parentTiles;
   std::array<int, 2> emptyTileCoords;
+  std::array<int, 2> parentOffset;
 
   void computeHeuristic(void);
 
@@ -48,7 +49,7 @@ struct NodePtrEqual {
   }
 };
 
-struct NodePtrCmp {
+struct NodePtrGreaterThan {
   bool operator()(const Node *lhs, const Node *rhs) const {
     return lhs->fScore > rhs->fScore;
   }

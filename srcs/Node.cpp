@@ -14,10 +14,10 @@ Node::Node(const std::vector<u_char> &firstGrid) {
 }
 
 Node::Node(Node *parent, const std::array<int, 2> &emptyTileSwapDir)
-    : parent(parent) {
+    : parentTiles(parent->tiles) {
   if (!parent) throw std::runtime_error("No parent given to a new child node.");
   tiles.resize(Puzzle::totalSize);
-  std::memcpy(tiles.data(), (parent->tiles).data(),
+  std::memcpy(tiles.data(), (parentTiles).data(),
               sizeof(u_char) * Puzzle::totalSize);
   gScore = parent->gScore + 1;
 
@@ -29,6 +29,9 @@ Node::Node(Node *parent, const std::array<int, 2> &emptyTileSwapDir)
   std::swap(tiles[oldX + oldY * Puzzle::N], tiles[newX + newY * Puzzle::N]);
   ID = std::string(tiles.begin(), tiles.end());
   emptyTileCoords = {newX, newY};
+
+  // Used to avoid going back when this node will be checked
+  parentOffset = {-emptyTileSwapDir[0], -emptyTileSwapDir[1]};
 }
 
 Node::~Node(void) {}

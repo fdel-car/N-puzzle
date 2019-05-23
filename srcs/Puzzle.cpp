@@ -5,19 +5,18 @@ Puzzle::Puzzle(const std::vector<u_char>& firstGrid)
     : finalGrid(_initFinalGrid()) {
   Heuristics::puzzleInstance = this;
   Node* firstNode = new Node(firstGrid);
-  _openSet.push(firstNode);
+  _openedSet.push(firstNode);
   _lookupTable[firstNode->ID] = firstNode;
 }
 
 Puzzle::~Puzzle(void) {
   // Delete all nodes in containers
   _lookupTable.clear();
-  while (!_openSet.empty()) {
-    delete _openSet.top();
-    _openSet.pop();
+  while (!_openedSet.empty()) {
+    delete _openedSet.top();
+    _openedSet.pop();
   }
-  for (auto it = _closeSet.begin(); it != _closeSet.end(); it++) delete *it;
-  _closeSet.clear();
+  _closedSet.clear();
 }
 
 const std::vector<u_char> Puzzle::_initFinalGrid(void) const {
@@ -45,14 +44,33 @@ const std::vector<u_char> Puzzle::_initFinalGrid(void) const {
   return vector;
 }
 
-void Puzzle::_printPath(const Node* node, bool isLastNode) {
-  if (node == nullptr) return;
-  _printPath(node->parent, false);
+void Puzzle::_printPath(const std::vector<u_char>& tiles) {
+  if (tiles.size() == 0) return;
+  _printPath(_closedSet[std::string(tiles.begin(), tiles.end())]);
+  for (int y = 0; y < Puzzle::N; y++) {
+    for (int x = 0; x < Puzzle::N; x++) {
+      if (x != 0 && x != Puzzle::N) std::cout << ' ';
+      std::cout << std::setw(Puzzle::nbrLength)
+                << static_cast<int>(tiles[x + y * Puzzle::N]);
+    }
+    std::cout << std::endl;
+  }
+  std::cout << std::endl;
+  _moveCount++;
+}
+
+// Should be used for the last node in the path only.
+void Puzzle::_printPath(const Node* node) {
+  _printPath(node->parentTiles);
   std::cout << *node << std::endl;
-  if (!isLastNode)
-    _moveCount++;
-  else
-    std::cout << "Number of required moves: " << _moveCount << '.' << std::endl;
+  std::cout << "Total number of states ever selected: " << _timeComplexity
+            << '.' << std::endl;
+  std::cout << "Maximum number of states ever represented in memory: "
+            << _sizeComplexity << '.' << std::endl;
+  std::cout << "Number of moves required: " << _moveCount << '.' << std::endl;
+  auto duration = std::chrono::duration<double>(_end - _start);
+  std::cout << std::fixed << "Search time: " << duration.count() << " seconds."
+            << std::endl;
 }
 
 bool Puzzle::_isSwapSafe(const std::array<int, 2>& emptyTileCoords,
@@ -64,21 +82,33 @@ bool Puzzle::_isSwapSafe(const std::array<int, 2>& emptyTileCoords,
 }
 
 int Puzzle::Solve(void) {
-  while (!_openSet.empty()) {
-    Node* node = _openSet.top();
+  _start = std::chrono::system_clock::now();
+
+  while (!_openedSet.empty()) {
+    Node* node = _openedSet.top();
+
+    if (_sizeComplexity < _openedSet.size())
+      _sizeComplexity = _openedSet.size();
+
     if (node->hScore == 0) {
-      _printPath(node, true);
+      _end = std::chrono::system_clock::now();
+      _printPath(node);
       return EXIT_SUCCESS;
     }
-    _openSet.pop();
-    _closeSet.insert(node);
+    _openedSet.pop();
+    if (_closedSet.find(node->ID) != _closedSet.end()) {
+      delete node;
+      continue;
+    }
 
     for (int i = 0; i < 4; i++) {
       std::array<int, 2> emptyTileSwapDir = {_rowOffset[i], _colOffset[i]};
-      if (!_isSwapSafe(node->emptyTileCoords, emptyTileSwapDir)) continue;
+      if (emptyTileSwapDir == node->parentOffset ||
+          !_isSwapSafe(node->emptyTileCoords, emptyTileSwapDir))
+        continue;
       Node* neighbor = new Node(node, emptyTileSwapDir);
 
-      if (_closeSet.find(neighbor) != _closeSet.end()) {
+      if (_closedSet.find(neighbor->ID) != _closedSet.end()) {
         delete neighbor;
         continue;
       }
@@ -86,27 +116,40 @@ int Puzzle::Solve(void) {
       auto it = _lookupTable.find(neighbor->ID);
       if (it == _lookupTable.end()) {
         neighbor->computeHeuristic();
-        _openSet.push(neighbor);
+        _openedSet.push(neighbor);
         _lookupTable[neighbor->ID] = neighbor;
-      } else if (neighbor->gScore >= ((*it).second)->gScore) {
-        delete neighbor;
-        continue;
+        _timeComplexity++;
       } else {
-        // This update could be *dangerous* the priority queue is not reordered
+        if (neighbor->gScore >= ((*it).second)->gScore) {
+          delete neighbor;
+          continue;
+        }
+        neighbor->hScore = ((*it).second)->hScore;
+        neighbor->fScore = neighbor->gScore + neighbor->hScore;
+        _openedSet.push(neighbor);
+        _lookupTable[neighbor->ID] = neighbor;
+        // This update could be *dangerous* because the priority queue is not
+        // reordered, so another approach was used just above
+
+        /*
         ((*it).second)->parent = node;
         ((*it).second)->gScore = neighbor->gScore;
         ((*it).second)->fScore =
             ((*it).second)->gScore + ((*it).second)->hScore;
+        */
 
         // One solution to reorder the priority queue after an update,
         // a bit too hackish and slow
-        // /*
-        std::make_heap(const_cast<Node**>(&_openSet.top()),
-                       const_cast<Node**>(&_openSet.top() + _openSet.size()),
-                       NodePtrCmp());
-        // */
+
+        /*
+        std::make_heap(const_cast<Node**>(&_openedSet.top()),
+                       const_cast<Node**>(&_openedSet.top() +
+        _openedSet.size()), NodePtrGreaterThan());
+        */
       }
     }
+    _closedSet[node->ID] = node->parentTiles;
+    delete node;
   }
   return EXIT_FAILURE;
 }
