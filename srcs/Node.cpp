@@ -37,7 +37,8 @@ Node::Node(Node *parent, const std::array<int, 2> &emptyTileSwapDir)
 Node::~Node(void) {}
 
 void Node::computeHeuristic(void) {
-  hScore = Heuristics::manhattanDistance(tiles);
+  // Use chosen heuristics based on input parameter
+  hScore = Heuristics::linearConflicts(tiles);
   fScore = gScore + hScore;
 }
 
