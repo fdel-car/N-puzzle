@@ -3,10 +3,11 @@
 #include <iomanip>
 #include <iostream>
 #include <vector>
+#include <array>
 
 class Node {
  public:
-  Node(const std::vector<u_char> &firstGrid);
+  Node(const std::vector<u_char> &startGrid);
   Node(Node *parent, const std::array<int, 2> &emptyTileSwapDir);
   virtual ~Node(void);
 

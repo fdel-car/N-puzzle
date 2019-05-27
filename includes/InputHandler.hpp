@@ -11,7 +11,7 @@ class InputHandler {
   InputHandler(std::istream &is);
   virtual ~InputHandler(void);
 
-  std::vector<u_char> firstGrid;
+  std::vector<u_char> startGrid;
 
  private:
   int _lineCount;

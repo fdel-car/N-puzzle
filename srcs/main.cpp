@@ -5,9 +5,9 @@
 
 int main(int ac, char **av) {
   try {
-    std::vector<u_char> firstGrid;
+    std::vector<u_char> startGrid;
     if (ac == 1)
-      firstGrid = InputHandler(std::cin).firstGrid;
+      startGrid = InputHandler(std::cin).startGrid;
     else {
       std::filebuf fb;
       struct stat st;
@@ -18,7 +18,7 @@ int main(int ac, char **av) {
           return EXIT_FAILURE;
         }
         std::istream is(&fb);
-        firstGrid = InputHandler(is).firstGrid;
+        startGrid = InputHandler(is).startGrid;
         fb.close();
       } else {
         std::cerr << "Error: " << strerror(errno) << " (" << av[1] << ")."
@@ -26,7 +26,7 @@ int main(int ac, char **av) {
         return EXIT_FAILURE;
       }
     }
-    return Puzzle(firstGrid).Solve();
+    return Puzzle(startGrid).Solve();
   } catch (const std::exception &err) {
     std::cerr << "Error: " << err.what() << std::endl;
     return EXIT_FAILURE;

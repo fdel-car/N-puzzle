@@ -3,19 +3,21 @@
 #include "Heuristics.hpp"
 #include "Puzzle.hpp"
 
-Node::Node(const std::vector<u_char> &firstGrid) {
+const std::string zeroFont = "\033[36;1m";
+const std::string resetFont = "\033[0m";
+
+Node::Node(const std::vector<u_char> &startGrid) {
   tiles.resize(Puzzle::totalSize);
-  std::memcpy(tiles.data(), firstGrid.data(),
+  std::memcpy(tiles.data(), startGrid.data(),
               sizeof(u_char) * Puzzle::totalSize);
   ID = std::string(tiles.begin(), tiles.end());
   gScore = 0;
-  computeHeuristic();
   emptyTileCoords = getValueCoords(tiles, 0);
 }
 
 Node::Node(Node *parent, const std::array<int, 2> &emptyTileSwapDir)
     : parentTiles(parent->tiles) {
-  if (!parent) throw std::runtime_error("No parent given to a new child node.");
+  if (!parent) throw std::runtime_error("no parent given to a new child node.");
   tiles.resize(Puzzle::totalSize);
   std::memcpy(tiles.data(), (parentTiles).data(),
               sizeof(u_char) * Puzzle::totalSize);
@@ -49,7 +51,7 @@ const std::array<int, 2> Node::getValueCoords(const std::vector<u_char> &tiles,
       if (tiles[x + y * Puzzle::N] == value) return {x, y};
     }
   }
-  throw std::runtime_error("Looking for non existing value (" +
+  throw std::runtime_error("looking for non existing value (" +
                            std::to_string(value) + ") inside the tiles.");
 }
 
@@ -59,8 +61,10 @@ std::ostream &operator<<(std::ostream &os, const Node &node) {
   for (int y = 0; y < Puzzle::N; y++) {
     for (int x = 0; x < Puzzle::N; x++) {
       if (x != 0 && x != Puzzle::N) os << ' ';
-      os << std::setw(Puzzle::nbrLength)
-         << static_cast<int>(node.tiles[x + y * Puzzle::N]);
+      int tile = node.tiles[x + y * Puzzle::N];
+      os << std::setw(Puzzle::nbrLength);
+      if (tile == 0) os << zeroFont << tile << resetFont;
+      else os << tile;
     }
     os << std::endl;
   }

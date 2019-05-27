@@ -26,7 +26,7 @@ static int conflictCount(uMapConflicts &conflicts) {
 int Heuristics::manhattanDistance(const std::vector<u_char> &tiles) {
   if (puzzleInstance == nullptr)
     throw std::runtime_error(
-        "Missing puzzle instance needed for the finalGrid data.");
+        "missing puzzle instance needed for the finalGrid data.");
   int dist = 0;
   for (int y = 0; y < Puzzle::N; y++) {
     for (int x = 0; x < Puzzle::N; x++) {

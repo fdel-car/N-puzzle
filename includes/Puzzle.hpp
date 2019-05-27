@@ -8,9 +8,15 @@
 #include <unordered_set>
 #include "Node.hpp"
 
+struct FrenchFacet : std::numpunct<char> {
+  char do_thousands_sep() const { return ' '; } // Separate with spaces
+  std::string do_grouping() const { return "\3"; } // Groups of 3 digits
+  char do_decimal_point() const { return ','; }  // Separate with comma
+};
+
 class Puzzle {
  public:
-  Puzzle(const std::vector<u_char> &firstGrid);
+  Puzzle(const std::vector<u_char> &startGrid);
   virtual ~Puzzle(void);
 
   const std::vector<u_char> finalGrid;
@@ -42,7 +48,9 @@ class Puzzle {
   void _printPath(const std::vector<u_char> &tiles);
   void _printPath(const Node *node);
   bool _isSwapSafe(const std::array<int, 2> &emptyTileCoords,
-                   const std::array<int, 2> &emptyTileSwapDir);
+                   const std::array<int, 2> &emptyTileSwapDir) const;
+  int _inversionCount(const std::vector<u_char> &tiles) const;
+  bool _isSolvable(const std::vector<u_char> &startGrid) const;
 
   Puzzle &operator=(Puzzle const &rhs);
 };

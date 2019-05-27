@@ -46,7 +46,7 @@ InputHandler::InputHandler(std::istream &is) {
         Puzzle::N = std::stoi(line);
         Puzzle::totalSize = Puzzle::N * Puzzle::N;
         Puzzle::nbrLength = std::to_string(Puzzle::totalSize).length();
-        firstGrid.resize(Puzzle::totalSize, 0);
+        startGrid.resize(Puzzle::totalSize, 0);
       } else
         throw std::invalid_argument(
             _errorString(line, " is not a valid integer value."));
@@ -67,7 +67,7 @@ InputHandler::InputHandler(std::istream &is) {
               std::numeric_limits<u_char>::max() < value) {
             throw std::out_of_range("stouc: out of range");
           }
-          firstGrid[x + y * Puzzle::N] = static_cast<u_char>(value);
+          startGrid[x + y * Puzzle::N] = static_cast<u_char>(value);
         } else
           throw std::invalid_argument(
               _errorString(tile, " is not a valid integer value."));
