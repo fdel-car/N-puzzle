@@ -3,8 +3,8 @@
 #include "Heuristics.hpp"
 #include "Puzzle.hpp"
 
-const std::string zeroFont = "\033[36;1m";
-const std::string resetFont = "\033[0m";
+static const std::string zeroFont = "\033[36;1m";
+static const std::string resetFont = "\033[0m";
 
 Node::Node(const std::vector<u_char> &startGrid) {
   tiles.resize(Puzzle::totalSize);
@@ -40,7 +40,7 @@ Node::~Node(void) {}
 
 void Node::computeHeuristic(void) {
   // Use chosen heuristics based on input parameter
-  hScore = Heuristics::linearConflicts(tiles);
+  hScore = currHeuristic(tiles);
   fScore = gScore + hScore;
 }
 
@@ -55,6 +55,21 @@ const std::array<int, 2> Node::getValueCoords(const std::vector<u_char> &tiles,
                            std::to_string(value) + ") inside the tiles.");
 }
 
+std::unordered_map<std::string, Node::HeuristicFunction> Node::_getHeuristicMap(
+    void) {
+  std::unordered_map<std::string, Node::HeuristicFunction> uMap;
+
+  uMap["-m"] = &Heuristics::manhattanDistance;
+  uMap["-l"] = &Heuristics::linearConflicts;
+
+  return uMap;
+}
+
+std::unordered_map<std::string, Node::HeuristicFunction> Node::hMap =
+    _getHeuristicMap();
+
+Node::HeuristicFunction Node::currHeuristic = hMap["-l"];
+
 bool Node::operator==(const Node &rhs) const { return ID == rhs.ID; }
 
 std::ostream &operator<<(std::ostream &os, const Node &node) {
@@ -62,9 +77,10 @@ std::ostream &operator<<(std::ostream &os, const Node &node) {
     for (int x = 0; x < Puzzle::N; x++) {
       if (x != 0 && x != Puzzle::N) os << ' ';
       int tile = node.tiles[x + y * Puzzle::N];
-      os << std::setw(Puzzle::nbrLength);
-      if (tile == 0) os << zeroFont << tile << resetFont;
-      else os << tile;
+      if (tile == 0) {
+        os << zeroFont << std::setw(Puzzle::nbrLength) << tile << resetFont;
+      } else
+        os << std::setw(Puzzle::nbrLength) << tile;
     }
     os << std::endl;
   }

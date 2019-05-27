@@ -1,32 +1,13 @@
 #include <sys/stat.h>
-#include <fstream>
 #include "InputHandler.hpp"
 #include "Puzzle.hpp"
 
 int main(int ac, char **av) {
   try {
-    std::vector<u_char> startGrid;
-    if (ac == 1)
-      startGrid = InputHandler(std::cin).startGrid;
-    else {
-      std::filebuf fb;
-      struct stat st;
-      if (fb.open(av[1], std::ios::in)) {
-        stat(av[1], &st);
-        if (st.st_mode & S_IFDIR) {
-          std::cerr << "Error: " << av[1] << " is a directory." << std::endl;
-          return EXIT_FAILURE;
-        }
-        std::istream is(&fb);
-        startGrid = InputHandler(is).startGrid;
-        fb.close();
-      } else {
-        std::cerr << "Error: " << strerror(errno) << " (" << av[1] << ")."
-                  << std::endl;
-        return EXIT_FAILURE;
-      }
-    }
-    return Puzzle(startGrid).Solve();
+    InputHandler iHandler(ac, av);
+    iHandler.parseTiles();
+    if (!iHandler.startGrid.empty()) return Puzzle(iHandler.startGrid).Solve();
+    return EXIT_FAILURE;
   } catch (const std::exception &err) {
     std::cerr << "Error: " << err.what() << std::endl;
     return EXIT_FAILURE;

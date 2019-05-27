@@ -1,11 +1,14 @@
 #pragma once
 
+#include <array>
 #include <iomanip>
 #include <iostream>
+#include <unordered_map>
 #include <vector>
-#include <array>
 
 class Node {
+  typedef int (*HeuristicFunction)(const std::vector<u_char> &tiles);
+
  public:
   Node(const std::vector<u_char> &startGrid);
   Node(Node *parent, const std::array<int, 2> &emptyTileSwapDir);
@@ -20,6 +23,9 @@ class Node {
   std::array<int, 2> emptyTileCoords;
   std::array<int, 2> parentOffset;
 
+  static std::unordered_map<std::string, HeuristicFunction> hMap;
+  static HeuristicFunction currHeuristic;
+
   void computeHeuristic(void);
 
   static const std::array<int, 2> getValueCoords(
@@ -30,6 +36,9 @@ class Node {
  private:
   Node(void);
   Node(Node const &src);
+
+  static std::unordered_map<std::string, HeuristicFunction> _getHeuristicMap(
+      void);
 
   Node &operator=(Node const &rhs);
 };

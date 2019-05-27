@@ -1,5 +1,9 @@
 #include "InputHandler.hpp"
+#include <sys/stat.h>
 #include "Puzzle.hpp"
+
+static const std::string errorFont = "\033[31;1m";
+static const std::string resetFont = "\033[0m";
 
 static void ltrim(std::string &str) {
   str.erase(str.begin(), std::find_if(str.begin(), str.end(), [](int ch) {
@@ -25,12 +29,54 @@ static std::string removeExtraSpaces(const std::string &input) {
   return output;
 }
 
-InputHandler::InputHandler(std::istream &is) {
+InputHandler::InputHandler(int argc, char **argv) {
+  try {
+    for (int i = 1; i < argc; i++) {
+      if (strlen(argv[i]) == 2 && argv[i][0] == '-') {
+        // TODO: Only set the heuristic once, otherwise throw an error
+        auto it = Node::hMap.find(argv[i]);
+        if (it != Node::hMap.end()) {
+          Node::currHeuristic = it->second;
+        }
+      } else if (!_fileOpened) {
+        if (i < argc - 1)
+          throw std::runtime_error("too many arguments passed to the program.");
+        struct stat st;
+        _ifs.open(argv[i], std::ios::in);
+        if (_ifs.good()) {
+          stat(argv[i], &st);
+          if (st.st_mode & S_IFDIR) {
+            _ifs.close();
+            throw std::invalid_argument("Error: " + std::string(argv[i]) +
+                                        " is a directory.");
+          }
+          _fileOpened = true;
+        } else {
+          throw std::invalid_argument("Error: " + std::string(strerror(errno)) +
+                                      " (" + argv[i] + ").");
+        }
+      }
+    }
+  } catch (const std::runtime_error &err) {
+    _invalidInput = true;
+    std::cerr << "Error: " << err.what() << std::endl;
+    printUsage();
+  }
+}
+
+void InputHandler::printUsage(void) const {
+  std::cerr << "./n_puzzle [-m|-l] [file]" << std::endl;
+  std::cerr << "./n_puzzle [-h]" << std::endl;
+}
+
+void InputHandler::parseTiles(void) {
+  if (_invalidInput) return;
   std::string line, tile;
   bool firstLineParsed = false;
   size_t spacePos, searchStart = 0;
   int x = 0, y = 0;
   _lineCount = 0;
+  std::istream &is = (!_fileOpened) ? std::cin : _ifs;
 
   while (std::getline(is, line)) {
     _lineCount++;
@@ -76,6 +122,7 @@ InputHandler::InputHandler(std::istream &is) {
       y++;
     }
   }
+  if (_fileOpened) _ifs.close();
 }
 
 InputHandler::~InputHandler(void) {}
