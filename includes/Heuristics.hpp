@@ -8,6 +8,7 @@ class Heuristics {
  public:
   static Puzzle *puzzleInstance;
 
+  static int hammingDistance(const std::vector<u_char> &tiles);
   static int manhattanDistance(const std::vector<u_char> &tiles);
   static int linearConflicts(const std::vector<u_char> &tiles);
 

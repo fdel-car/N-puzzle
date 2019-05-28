@@ -25,6 +25,20 @@ static int conflictCount(uMapConflicts &conflicts) {
   return count;
 }
 
+int Heuristics::hammingDistance(const std::vector<u_char> &tiles) {
+  assert(puzzleInstance != nullptr);
+  int dist = 0;
+  for (int y = 0; y < Puzzle::N; y++) {
+    for (int x = 0; x < Puzzle::N; x++) {
+      u_char tile = tiles[x + y * Puzzle::N];
+      if (tile == 0 || tile == puzzleInstance->finalGrid[x + y * Puzzle::N])
+        continue;
+      dist++;
+    }
+  }
+  return dist;
+}
+
 int Heuristics::manhattanDistance(const std::vector<u_char> &tiles) {
   assert(puzzleInstance != nullptr);
   int dist = 0;

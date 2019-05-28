@@ -73,14 +73,6 @@ InputHandler::InputHandler(int argc, char **argv) {
 }
 
 void InputHandler::_showHelp(void) const {
-  std::cout << "Available heuristics:" << std::endl;
-  std::cout << std::setw(30) << std::left << "  -m, --manhattan-distance";
-  std::cout << "Use Manhattan distance, also called taxicab metric."
-            << std::endl;
-  std::cout << std::setw(30) << std::left << "  -l, --linear-conflict";
-  std::cout << "Use linear conflict along with Manhattan distance (default)."
-            << std::endl;
-  std::cout << std::endl;
   std::cout << "Goal patterns:" << std::endl;
   std::cout << std::setw(30) << std::left << "  -s, --snail";
   std::cout << "Set the snail solution as the final grid state (default)."
@@ -88,10 +80,28 @@ void InputHandler::_showHelp(void) const {
   std::cout << std::setw(30) << std::left << "  -c, --classic";
   std::cout << "Use the classic solution, an ordered grid with a trailing 0."
             << std::endl;
+
+  std::cout << std::endl;
+  std::cout << "Available heuristics:" << std::endl;
+  std::cout << std::setw(30) << std::left << "  -H, --hamming-distance";
+  std::cout << "Use Hamming distance, corresponds to the number of misplaced "
+               "tiles, slowest heuristic."
+            << std::endl;
+  std::cout << std::setw(30) << std::left << "  -m, --manhattan-distance";
+  std::cout << "Use Manhattan distance, also called taxicab metric."
+            << std::endl;
+  std::cout << std::setw(30) << std::left << "  -l, --linear-conflict";
+  std::cout << "Use linear conflict along with Manhattan distance, fastest "
+               "heuristic (default)."
+            << std::endl;
+
+  std::cout << std::endl;
+  std::cout << std::setw(30) << std::left << "  -h, --help";
+  std::cout << "Show this help list." << std::endl;
 }
 
 void InputHandler::_printUsage(void) const {
-  std::cerr << "./n_puzzle [-m|-l] [file]" << std::endl;
+  std::cerr << "./n_puzzle [-H|-m|-l] [-s|-c] [file]" << std::endl;
   std::cerr << "./n_puzzle [-h]" << std::endl;
 }
 

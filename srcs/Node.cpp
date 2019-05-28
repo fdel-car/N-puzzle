@@ -57,6 +57,7 @@ std::unordered_map<std::string, Node::HeuristicFunction> Node::_getHeuristicMap(
     void) {
   std::unordered_map<std::string, Node::HeuristicFunction> uMap;
 
+  uMap["-H"] = &Heuristics::hammingDistance;
   uMap["-m"] = &Heuristics::manhattanDistance;
   uMap["-l"] = &Heuristics::linearConflicts;
 
