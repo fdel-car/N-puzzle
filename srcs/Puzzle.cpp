@@ -1,11 +1,11 @@
 #include "Puzzle.hpp"
 #include "Heuristics.hpp"
-#include <locale>
 
 Puzzle::Puzzle(const std::vector<u_char>& startGrid)
     : finalGrid(_initFinalGrid()) {
   Heuristics::puzzleInstance = this;
-  if (!_isSolvable(startGrid)) throw std::runtime_error("this puzzle is not solvable.");
+  if (!_isSolvable(startGrid))
+    throw std::logic_error("this puzzle is not solvable.");
   Node* firstNode = new Node(startGrid);
   firstNode->computeHeuristic();
   _openedSet.push(firstNode);
@@ -22,7 +22,7 @@ Puzzle::~Puzzle(void) {
   _closedSet.clear();
 }
 
-int Puzzle::_inversionCount(const std::vector<u_char> &tiles) const {
+int Puzzle::_inversionCount(const std::vector<u_char>& tiles) const {
   int invCount = 0;
   for (int i = 0; i < totalSize; i++) {
     u_char tile = tiles[i];
@@ -34,15 +34,15 @@ int Puzzle::_inversionCount(const std::vector<u_char> &tiles) const {
   return invCount;
 }
 
-bool Puzzle::_isSolvable(const std::vector<u_char> &startGrid) const {
+bool Puzzle::_isSolvable(const std::vector<u_char>& startGrid) const {
   int startInv = _inversionCount(startGrid);
   int finalInv = _inversionCount(finalGrid);
 
   if (Puzzle::N % 2 == 0) {
     const std::array<int, 2> emptyStartCoords =
-      Node::getValueCoords(startGrid, 0);
+        Node::getValueCoords(startGrid, 0);
     const std::array<int, 2> emptyFinalCoords =
-      Node::getValueCoords(finalGrid, 0);
+        Node::getValueCoords(finalGrid, 0);
     startInv += emptyStartCoords[1];
     finalInv += emptyFinalCoords[1];
   }
@@ -51,27 +51,32 @@ bool Puzzle::_isSolvable(const std::vector<u_char> &startGrid) const {
 }
 
 const std::vector<u_char> Puzzle::_initFinalGrid(void) const {
-  u_char value = 1;
-  int x = 0, y = 0;
-  int xInc = 1, yInc = 0;
   std::vector<u_char> vector(totalSize, 0);
 
-  while (true) {
-    vector[x + y * N] = value;
-    if (x + xInc == N || x + xInc < 0 ||
-        (xInc != 0 && vector[(x + xInc) + y * N] != 0)) {
-      yInc = xInc;
-      xInc = 0;
-    } else if (y + yInc == N || y + yInc < 0 ||
-               (yInc != 0 && vector[x + (y + yInc) * N] != 0)) {
-      xInc = -yInc;
-      yInc = 0;
+  if (useSnailSolution) {
+    u_char value = 1;
+    int x = 0, y = 0;
+    int xInc = 1, yInc = 0;
+    while (true) {
+      vector[x + y * N] = value;
+      if (x + xInc == N || x + xInc < 0 ||
+          (xInc != 0 && vector[(x + xInc) + y * N] != 0)) {
+        yInc = xInc;
+        xInc = 0;
+      } else if (y + yInc == N || y + yInc < 0 ||
+                 (yInc != 0 && vector[x + (y + yInc) * N] != 0)) {
+        xInc = -yInc;
+        yInc = 0;
+      }
+      x += xInc;
+      y += yInc;
+      value++;
+      if (value == N * N || value == 0) break;
     }
-    x += xInc;
-    y += yInc;
-    value++;
-    if (value == N * N) break;
+  } else {
+    for (int i = 0; i < totalSize - 1; i++) vector[i] = i + 1;
   }
+
   return vector;
 }
 
@@ -89,7 +94,8 @@ void Puzzle::_printPath(const Node* node) {
   std::cout << *node << std::endl;
 
   // Set french locale for thousands separator
-  std::locale oldLocale = std::cout.imbue(std::locale (std::cout.getloc(), new FrenchFacet));
+  std::locale oldLocale =
+      std::cout.imbue(std::locale(std::cout.getloc(), new FrenchFacet));
 
   std::cout << "Total number of states ever selected: " << _timeComplexity
             << '.' << std::endl;
@@ -188,6 +194,7 @@ int Puzzle::Solve(void) {
 int Puzzle::N = 0;
 int Puzzle::totalSize = 0;
 int Puzzle::nbrLength = 0;
+bool Puzzle::useSnailSolution = true;
 
 const std::array<int, 4> Puzzle::_rowOffset = {1, 0, -1, 0};
 const std::array<int, 4> Puzzle::_colOffset = {0, 1, 0, -1};

@@ -8,6 +8,8 @@ static uMapConflicts::iterator findLargestListInMap(uMapConflicts &conflicts) {
                           });
 }
 
+// For more info, see here (there is some pseudo-code at the bottom)
+// https://cse.sc.edu/~mgv/csce580sp15/gradPres/HanssonMayerYung1992.pdf
 static int conflictCount(uMapConflicts &conflicts) {
   int count = 0;
   uMapConflicts::iterator it = findLargestListInMap(conflicts);
@@ -24,9 +26,7 @@ static int conflictCount(uMapConflicts &conflicts) {
 }
 
 int Heuristics::manhattanDistance(const std::vector<u_char> &tiles) {
-  if (puzzleInstance == nullptr)
-    throw std::runtime_error(
-        "missing puzzle instance needed for the finalGrid data.");
+  assert(puzzleInstance != nullptr);
   int dist = 0;
   for (int y = 0; y < Puzzle::N; y++) {
     for (int x = 0; x < Puzzle::N; x++) {
@@ -100,12 +100,9 @@ int Heuristics::_colConflicts(const std::vector<u_char> &tiles) {
 }
 
 int Heuristics::linearConflicts(const std::vector<u_char> &tiles) {
-  if (puzzleInstance == nullptr)
-    throw std::runtime_error(
-        "Missing puzzle instance needed for the finalGrid data.");
-  int linearConf = _rowConflicts(tiles);
-  linearConf += _colConflicts(tiles);
-  return manhattanDistance(tiles) + linearConf * 2;
+  assert(puzzleInstance != nullptr);
+  int linearConf = _rowConflicts(tiles) + _colConflicts(tiles);
+  return manhattanDistance(tiles) + (linearConf << 1);
 }
 
 Puzzle *Heuristics::puzzleInstance = nullptr;

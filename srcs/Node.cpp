@@ -1,5 +1,4 @@
 #include "Node.hpp"
-#include <cstring>
 #include "Heuristics.hpp"
 #include "Puzzle.hpp"
 
@@ -17,7 +16,7 @@ Node::Node(const std::vector<u_char> &startGrid) {
 
 Node::Node(Node *parent, const std::array<int, 2> &emptyTileSwapDir)
     : parentTiles(parent->tiles) {
-  if (!parent) throw std::runtime_error("no parent given to a new child node.");
+  assert(parent != nullptr);
   tiles.resize(Puzzle::totalSize);
   std::memcpy(tiles.data(), (parentTiles).data(),
               sizeof(u_char) * Puzzle::totalSize);
@@ -39,7 +38,6 @@ Node::Node(Node *parent, const std::array<int, 2> &emptyTileSwapDir)
 Node::~Node(void) {}
 
 void Node::computeHeuristic(void) {
-  // Use chosen heuristics based on input parameter
   hScore = currHeuristic(tiles);
   fScore = gScore + hScore;
 }
@@ -51,8 +49,8 @@ const std::array<int, 2> Node::getValueCoords(const std::vector<u_char> &tiles,
       if (tiles[x + y * Puzzle::N] == value) return {x, y};
     }
   }
-  throw std::runtime_error("looking for non existing value (" +
-                           std::to_string(value) + ") inside the tiles.");
+  assert(false);
+  return {-1, -1};  // Will never happen but make the compiler happy
 }
 
 std::unordered_map<std::string, Node::HeuristicFunction> Node::_getHeuristicMap(

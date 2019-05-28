@@ -1,5 +1,4 @@
 #include "InputHandler.hpp"
-#include <sys/stat.h>
 #include "Puzzle.hpp"
 
 static const std::string errorFont = "\033[31;1m";
@@ -31,46 +30,89 @@ static std::string removeExtraSpaces(const std::string &input) {
 
 InputHandler::InputHandler(int argc, char **argv) {
   try {
+    bool hSelected = false;
+    bool goalSelected = false;
     for (int i = 1; i < argc; i++) {
+      if (strcmp(argv[i], "-h") == 0) {
+        if (argc != 2)
+          std::cout << "Warning: --help flag should be given alone."
+                    << std::endl;
+        _showHelp();
+        _readyToParse = false;
+        break;
+      }
       if (strlen(argv[i]) == 2 && argv[i][0] == '-') {
-        // TODO: Only set the heuristic once, otherwise throw an error
+        if (_fileOpened)
+          throw invalid_usage("flag(s) must be given before the file.");
         auto it = Node::hMap.find(argv[i]);
         if (it != Node::hMap.end()) {
+          if (hSelected)
+            throw invalid_usage("only one heuristic can be selected.");
           Node::currHeuristic = it->second;
-        }
-      } else if (!_fileOpened) {
-        if (i < argc - 1)
-          throw std::runtime_error("too many arguments passed to the program.");
-        struct stat st;
-        _ifs.open(argv[i], std::ios::in);
-        if (_ifs.good()) {
-          stat(argv[i], &st);
-          if (st.st_mode & S_IFDIR) {
-            _ifs.close();
-            throw std::invalid_argument("Error: " + std::string(argv[i]) +
-                                        " is a directory.");
-          }
-          _fileOpened = true;
+          hSelected = true;
+        } else if (argv[i][1] == 's' || argv[i][1] == 'c') {
+          if (goalSelected)
+            throw invalid_usage("only one goal pattern can be used.");
+          Puzzle::useSnailSolution = argv[i][1] == 's';
+          goalSelected = true;
         } else {
-          throw std::invalid_argument("Error: " + std::string(strerror(errno)) +
-                                      " (" + argv[i] + ").");
+          throw invalid_usage("invalid flag \"" + std::string(argv[i]) +
+                              "\" given.");
         }
+      } else {
+        if (_fileOpened) throw invalid_usage("only one file can be supplied.");
+        if (i == argc - 1) _openFileStream(argv[i]);
+        _fileOpened = true;
       }
     }
-  } catch (const std::runtime_error &err) {
-    _invalidInput = true;
+  } catch (const invalid_usage &err) {
+    _readyToParse = false;
     std::cerr << "Error: " << err.what() << std::endl;
-    printUsage();
+    _printUsage();
   }
 }
 
-void InputHandler::printUsage(void) const {
+void InputHandler::_showHelp(void) const {
+  std::cout << "Available heuristics:" << std::endl;
+  std::cout << std::setw(30) << std::left << "  -m, --manhattan-distance";
+  std::cout << "Use Manhattan distance, also called taxicab metric."
+            << std::endl;
+  std::cout << std::setw(30) << std::left << "  -l, --linear-conflict";
+  std::cout << "Use linear conflict along with Manhattan distance (default)."
+            << std::endl;
+  std::cout << std::endl;
+  std::cout << "Goal patterns:" << std::endl;
+  std::cout << std::setw(30) << std::left << "  -s, --snail";
+  std::cout << "Set the snail solution as the final grid state (default)."
+            << std::endl;
+  std::cout << std::setw(30) << std::left << "  -c, --classic";
+  std::cout << "Use the classic solution, an ordered grid with a trailing 0."
+            << std::endl;
+}
+
+void InputHandler::_printUsage(void) const {
   std::cerr << "./n_puzzle [-m|-l] [file]" << std::endl;
   std::cerr << "./n_puzzle [-h]" << std::endl;
 }
 
+void InputHandler::_openFileStream(const std::string &fileName) {
+  struct stat st;
+  _ifs.open(fileName, std::ios::in);
+  if (_ifs.good()) {
+    stat(fileName.c_str(), &st);
+    if (st.st_mode & S_IFDIR) {
+      _ifs.close();
+      throw std::invalid_argument('"' + fileName + "\" is a directory.");
+    }
+  } else {
+    std::string error(strerror(errno));
+    error[0] = tolower(error[0]);
+    throw std::invalid_argument(error + " (" + fileName + ").");
+  }
+}
+
 void InputHandler::parseTiles(void) {
-  if (_invalidInput) return;
+  if (!_readyToParse) return;
   std::string line, tile;
   bool firstLineParsed = false;
   size_t spacePos, searchStart = 0;

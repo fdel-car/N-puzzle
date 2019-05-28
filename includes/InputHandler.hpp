@@ -1,8 +1,15 @@
 #pragma once
 
+#include <sys/stat.h>
 #include <fstream>
 #include <iostream>
 #include <regex>
+
+struct invalid_usage : public std::logic_error {
+ public:
+  invalid_usage(const std::string &msg) : std::logic_error(msg) {}
+  invalid_usage(const char *msg) : std::logic_error(msg) {}
+};
 
 class InputHandler {
  public:
@@ -16,14 +23,16 @@ class InputHandler {
  private:
   int _lineCount;
   bool _fileOpened = false;
-  bool _invalidInput = false;
+  bool _readyToParse = true;
   const std::regex _nbrRegex = std::regex("[0-9]+");
   std::ifstream _ifs;
 
   InputHandler(void);
   InputHandler(InputHandler const &src);
 
-  void printUsage(void) const;
+  void _showHelp(void) const;
+  void _printUsage(void) const;
+  void _openFileStream(const std::string &fileName);
   const std::string _errorString(const std::string &elem,
                                  const std::string &error) const;
 

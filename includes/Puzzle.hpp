@@ -1,17 +1,22 @@
 #pragma once
 
+#ifndef NDEBUG
+#define NDEBUG
+#endif
+
+#include <assert.h>
 #include <algorithm>
 #include <chrono>
 #include <list>
+#include <locale>
 #include <queue>
-#include <unordered_map>
 #include <unordered_set>
 #include "Node.hpp"
 
 struct FrenchFacet : std::numpunct<char> {
-  char do_thousands_sep() const { return ' '; } // Separate with spaces
-  std::string do_grouping() const { return "\3"; } // Groups of 3 digits
-  char do_decimal_point() const { return ','; }  // Separate with comma
+  char do_thousands_sep() const { return ' '; }     // Separate with spaces
+  std::string do_grouping() const { return "\3"; }  // Groups of 3 digits
+  char do_decimal_point() const { return ','; }     // Separate with comma
 };
 
 class Puzzle {
@@ -24,6 +29,7 @@ class Puzzle {
   static int N;
   static int totalSize;
   static int nbrLength;
+  static bool useSnailSolution;
 
   int Solve(void);
 
