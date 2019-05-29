@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html style="background-color: whitesmoke;">
+  <head>
+    <title>N-Puzzle</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript" src="./index.js"></script>
+    <link
+      rel="stylesheet"
+      href="https://use.fontawesome.com/releases/v5.8.2/css/all.css"
+      integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay"
+      crossorigin="anonymous"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css"
+    />
+  </head>
+  <body>
+    <div class="container">
+      <section class="section">
+        <div class="card">
+          <header class="card-header">
+            <p class="card-header-title"></p>
+            <a
+              href="#"
+              class="card-header-icon"
+              id="refresh-puzzle"
+              aria-label="more options"
+            >
+              <span class="icon">
+                <i class="fas fa-sync-alt" aria-hidden="true"></i>
+              </span>
+            </a>
+          </header>
+          <div class="card-content" style="padding: .75rem;">
+            <!-- <span>Search time: </span> -->
+          </div>
+          <footer class="card-footer">
+            <a class="card-footer-item" id="prev-state"
+              ><i class="fas fa-backward" aria-hidden="true"></i
+            ></a>
+            <a class="card-footer-item" id="toggle-animation"
+              ><i class="fas fa-play" aria-hidden="true"></i
+            ></a>
+            <a class="card-footer-item" id="next-state"
+              ><i class="fas fa-forward" aria-hidden="true"></i
+            ></a>
+          </footer>
+        </div>
+      </section>
+    </div>
+  </body>
+</html>

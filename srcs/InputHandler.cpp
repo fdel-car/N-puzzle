@@ -205,6 +205,7 @@ void InputHandler::parseTiles(void) {
     }
   }
   if (_fileOpened) _ifs.close();
+  // TODO: Once the grid is loaded, verify it (no duplicates, no number bigger or equal than totalsize...)
 }
 
 InputHandler::~InputHandler(void) {}
