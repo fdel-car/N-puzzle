@@ -53,7 +53,7 @@ bool Puzzle::_isSolvable(const std::vector<u_char>& startGrid) const {
 const std::vector<u_char> Puzzle::_initFinalGrid(void) const {
   std::vector<u_char> vector(totalSize, 0);
 
-  if (useSnailSolution) {
+  if (_goalPattern == Snail) {
     u_char value = 1;
     int x = 0, y = 0;
     int xInc = 1, yInc = 0;
@@ -73,7 +73,7 @@ const std::vector<u_char> Puzzle::_initFinalGrid(void) const {
       value++;
       if (value == N * N || value == 0) break;
     }
-  } else {
+  } else if (_goalPattern == Classic) {
     for (int i = 0; i < totalSize - 1; i++) vector[i] = i + 1;
   }
 
@@ -127,7 +127,8 @@ int Puzzle::Solve(void) {
     if (_sizeComplexity < _openedSet.size())
       _sizeComplexity = _openedSet.size();
 
-    if (node->hScore == 0) {
+    if ((currAlgorithm != UniformCost && node->hScore == 0) ||
+        node->tiles == finalGrid) {
       _end = std::chrono::system_clock::now();
       _printPath(node);
       return EXIT_SUCCESS;
@@ -143,7 +144,13 @@ int Puzzle::Solve(void) {
       if (emptyTileSwapDir == node->parentOffset ||
           !_isSwapSafe(node->emptyTileCoords, emptyTileSwapDir))
         continue;
-      Node* neighbor = new Node(node, emptyTileSwapDir);
+      Node* neighbor = nullptr;
+      try {
+        neighbor = new Node(node, emptyTileSwapDir);
+      } catch (const std::bad_alloc& err) {
+        std::cerr << "Error: " << err.what() << std::endl;
+        return EXIT_FAILURE;
+      }
 
       if (_closedSet.find(neighbor->ID) != _closedSet.end()) {
         delete neighbor;
@@ -191,10 +198,43 @@ int Puzzle::Solve(void) {
   return EXIT_FAILURE;
 }
 
+bool Puzzle::updateGoalPattern(char flag) {
+  auto itGMap = _goalMap.find(flag);
+  if (itGMap != _goalMap.end()) {
+    _goalPattern = itGMap->second;
+    return true;
+  }
+  return false;
+}
+
+std::unordered_map<char, Puzzle::GoalPattern> Puzzle::_getGoalMap(void) {
+  std::unordered_map<char, GoalPattern> uMap;
+
+  uMap['s'] = Snail;
+  uMap['c'] = Classic;
+
+  return uMap;
+}
+
+std::unordered_map<char, Puzzle::GoalPattern> Puzzle::_goalMap = _getGoalMap();
+
+std::unordered_map<char, Puzzle::Algorithm> Puzzle::_getAlgoMap(void) {
+  std::unordered_map<char, Algorithm> uMap;
+
+  uMap['A'] = AStar;
+  uMap['g'] = Greedy;
+  uMap['u'] = UniformCost;
+
+  return uMap;
+}
+
+std::unordered_map<char, Puzzle::Algorithm> Puzzle::algoMap = _getAlgoMap();
+
 int Puzzle::N = 0;
 int Puzzle::totalSize = 0;
 int Puzzle::nbrLength = 0;
-bool Puzzle::useSnailSolution = true;
+Puzzle::GoalPattern Puzzle::_goalPattern = _goalMap['s'];
+Puzzle::Algorithm Puzzle::currAlgorithm = algoMap['a'];
 
 const std::array<int, 4> Puzzle::_rowOffset = {1, 0, -1, 0};
 const std::array<int, 4> Puzzle::_colOffset = {0, 1, 0, -1};

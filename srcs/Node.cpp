@@ -20,7 +20,7 @@ Node::Node(Node *parent, const std::array<int, 2> &emptyTileSwapDir)
   tiles.resize(Puzzle::totalSize);
   std::memcpy(tiles.data(), (parentTiles).data(),
               sizeof(u_char) * Puzzle::totalSize);
-  gScore = parent->gScore + 1;
+  gScore = Puzzle::currAlgorithm != Puzzle::Greedy ? parent->gScore + 1 : 0;
 
   // Move tile to the next position
   int oldX = parent->emptyTileCoords[0];
@@ -38,7 +38,8 @@ Node::Node(Node *parent, const std::array<int, 2> &emptyTileSwapDir)
 Node::~Node(void) {}
 
 void Node::computeHeuristic(void) {
-  hScore = currHeuristic(tiles);
+  hScore =
+      Puzzle::currAlgorithm != Puzzle::UniformCost ? currHeuristic(tiles) : 0;
   fScore = gScore + hScore;
 }
 
@@ -53,23 +54,24 @@ const std::array<int, 2> Node::getValueCoords(const std::vector<u_char> &tiles,
   return {-1, -1};  // Will never happen but make the compiler happy
 }
 
-std::unordered_map<std::string, Node::HeuristicFunction> Node::_getHeuristicMap(
-    void) {
-  std::unordered_map<std::string, Node::HeuristicFunction> uMap;
+std::unordered_map<char, Node::HeuristicFunction> Node::_getHeuristicMap(void) {
+  std::unordered_map<char, Node::HeuristicFunction> uMap;
 
-  uMap["-H"] = &Heuristics::hammingDistance;
-  uMap["-m"] = &Heuristics::manhattanDistance;
-  uMap["-l"] = &Heuristics::linearConflicts;
+  uMap['H'] = &Heuristics::hammingDistance;
+  uMap['m'] = &Heuristics::manhattanDistance;
+  uMap['l'] = &Heuristics::linearConflicts;
 
   return uMap;
 }
 
-std::unordered_map<std::string, Node::HeuristicFunction> Node::hMap =
+std::unordered_map<char, Node::HeuristicFunction> Node::hMap =
     _getHeuristicMap();
 
-Node::HeuristicFunction Node::currHeuristic = hMap["-l"];
+Node::HeuristicFunction Node::currHeuristic = hMap['l'];
 
 bool Node::operator==(const Node &rhs) const { return ID == rhs.ID; }
+
+bool Node::operator>(const Node &rhs) const { return fScore > rhs.fScore; }
 
 std::ostream &operator<<(std::ostream &os, const Node &node) {
   for (int y = 0; y < Puzzle::N; y++) {

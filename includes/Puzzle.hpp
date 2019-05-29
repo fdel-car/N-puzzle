@@ -24,21 +24,26 @@ class Puzzle {
   Puzzle(const std::vector<u_char> &startGrid);
   virtual ~Puzzle(void);
 
+  enum Algorithm { AStar, Greedy, UniformCost };
   const std::vector<u_char> finalGrid;
 
   static int N;
   static int totalSize;
   static int nbrLength;
-  static bool useSnailSolution;
+  static std::unordered_map<char, Algorithm> algoMap;
+  static Algorithm currAlgorithm;
 
   int Solve(void);
 
+  static bool updateGoalPattern(char flag);
+  // void setAlgorithm(char flag);
+
  private:
+  enum GoalPattern { Snail, Classic };
   size_t _moveCount = 0;
   size_t _timeComplexity = 0;
   size_t _sizeComplexity = 0;
-  std::priority_queue<Node *, std::vector<Node *>, NodePtrGreaterThan>
-      _openedSet;
+  std::priority_queue<Node *, std::vector<Node *>, NodePtrGtrThan> _openedSet;
   std::unordered_map<std::string, Node *> _lookupTable;
   std::unordered_map<std::string, std::vector<u_char>> _closedSet;
   std::chrono::system_clock::time_point _start;
@@ -46,9 +51,14 @@ class Puzzle {
 
   static const std::array<int, 4> _rowOffset;
   static const std::array<int, 4> _colOffset;
+  static std::unordered_map<char, GoalPattern> _goalMap;
+  static GoalPattern _goalPattern;
 
   Puzzle(void);
   Puzzle(Puzzle const &src);
+
+  static std::unordered_map<char, GoalPattern> _getGoalMap(void);
+  static std::unordered_map<char, Algorithm> _getAlgoMap(void);
 
   const std::vector<u_char> _initFinalGrid(void) const;
   void _printPath(const std::vector<u_char> &tiles);

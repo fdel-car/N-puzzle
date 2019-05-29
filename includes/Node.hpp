@@ -24,7 +24,7 @@ class Node {
   std::array<int, 2> emptyTileCoords;
   std::array<int, 2> parentOffset;
 
-  static std::unordered_map<std::string, HeuristicFunction> hMap;
+  static std::unordered_map<char, HeuristicFunction> hMap;
   static HeuristicFunction currHeuristic;
 
   void computeHeuristic(void);
@@ -33,13 +33,13 @@ class Node {
       const std::vector<u_char> &tiles, u_char value);
 
   bool operator==(const Node &rhs) const;
+  bool operator>(const Node &rhs) const;
 
  private:
   Node(void);
   Node(Node const &src);
 
-  static std::unordered_map<std::string, HeuristicFunction> _getHeuristicMap(
-      void);
+  static std::unordered_map<char, HeuristicFunction> _getHeuristicMap(void);
 
   Node &operator=(Node const &rhs);
 };
@@ -60,9 +60,9 @@ struct NodePtrEqual {
   }
 };
 
-struct NodePtrGreaterThan {
+struct NodePtrGtrThan {
   bool operator()(const Node *lhs, const Node *rhs) const {
-    return lhs->fScore > rhs->fScore;
+    return *lhs > *rhs;
   }
 };
 

@@ -22,6 +22,9 @@ class InputHandler {
 
  private:
   int _lineCount;
+  bool _hSelected = false;
+  bool _goalSelected = false;
+  bool _algoSelected = false;
   bool _fileOpened = false;
   bool _readyToParse = true;
   const std::regex _nbrRegex = std::regex("[0-9]+");
@@ -30,6 +33,7 @@ class InputHandler {
   InputHandler(void);
   InputHandler(InputHandler const &src);
 
+  void _parseFlags(const std::string &flags);
   void _showHelp(void) const;
   void _printUsage(void) const;
   void _openFileStream(const std::string &fileName);

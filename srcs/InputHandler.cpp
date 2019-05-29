@@ -30,38 +30,23 @@ static std::string removeExtraSpaces(const std::string &input) {
 
 InputHandler::InputHandler(int argc, char **argv) {
   try {
-    bool hSelected = false;
-    bool goalSelected = false;
     for (int i = 1; i < argc; i++) {
-      if (strcmp(argv[i], "-h") == 0) {
-        if (argc != 2)
-          std::cout << "Warning: --help flag should be given alone."
-                    << std::endl;
-        _showHelp();
-        _readyToParse = false;
-        break;
-      }
-      if (strlen(argv[i]) == 2 && argv[i][0] == '-') {
+      std::string currArg(argv[i]);
+      if (currArg[0] == '-') {
+        if (currArg.find('h') != std::string::npos) {
+          if (argc != 2)
+            std::cout << "Warning: --help flag should be given alone."
+                      << std::endl;
+          _showHelp();
+          _readyToParse = false;
+          break;
+        }
         if (_fileOpened)
           throw invalid_usage("flag(s) must be given before the file.");
-        auto it = Node::hMap.find(argv[i]);
-        if (it != Node::hMap.end()) {
-          if (hSelected)
-            throw invalid_usage("only one heuristic can be selected.");
-          Node::currHeuristic = it->second;
-          hSelected = true;
-        } else if (argv[i][1] == 's' || argv[i][1] == 'c') {
-          if (goalSelected)
-            throw invalid_usage("only one goal pattern can be used.");
-          Puzzle::useSnailSolution = argv[i][1] == 's';
-          goalSelected = true;
-        } else {
-          throw invalid_usage("invalid flag \"" + std::string(argv[i]) +
-                              "\" given.");
-        }
+        _parseFlags(currArg.substr(1));
       } else {
         if (_fileOpened) throw invalid_usage("only one file can be supplied.");
-        if (i == argc - 1) _openFileStream(argv[i]);
+        if (i == argc - 1) _openFileStream(currArg);
         _fileOpened = true;
       }
     }
@@ -69,6 +54,36 @@ InputHandler::InputHandler(int argc, char **argv) {
     _readyToParse = false;
     std::cerr << "Error: " << err.what() << std::endl;
     _printUsage();
+  }
+}
+
+void InputHandler::_parseFlags(const std::string &flags) {
+  for (auto flag : flags) {
+    auto itHMap = Node::hMap.find(flag);
+    if (itHMap != Node::hMap.end()) {
+      if (_hSelected)
+        throw invalid_usage("only one heuristic can be selected.");
+      Node::currHeuristic = itHMap->second;
+      _hSelected = true;
+      continue;
+    }
+    if (Puzzle::updateGoalPattern(flag)) {
+      if (_goalSelected)
+        throw invalid_usage("only one goal pattern can be selected.");
+      _goalSelected = true;
+      continue;
+    }
+    auto itAMap = Puzzle::algoMap.find(flag);
+    if (itAMap != Puzzle::algoMap.end()) {
+      if (_algoSelected)
+        throw invalid_usage("only one type of algorithm can be selected.");
+      Puzzle::currAlgorithm = itAMap->second;
+      _algoSelected = true;
+      continue;
+    }
+    std::string dashedFlag("-");
+    dashedFlag += flag;
+    throw invalid_usage("invalid flag \"" + dashedFlag + "\" given.");
   }
 }
 
@@ -96,12 +111,27 @@ void InputHandler::_showHelp(void) const {
             << std::endl;
 
   std::cout << std::endl;
+  std::cout << "Type of algorithms:" << std::endl;
+  std::cout << std::setw(30) << std::left << "  -A, --a-star";
+  std::cout << "Both the expected and the past cost are considered during the "
+               "search (default)."
+            << std::endl;
+  std::cout << std::setw(30) << std::left << "  -g, --greedy";
+  std::cout << "The past cost will be ignored, only considering expected cost, "
+               "fastest algorithm but the result won't be optimal."
+            << std::endl;
+  std::cout << std::setw(30) << std::left << "  -u, --uniform-cost";
+  std::cout << "All states will have the same expected cost (discard heuristic "
+               "choice), so all nodes will be considered, slowest algorithm."
+            << std::endl;
+
+  std::cout << std::endl;
   std::cout << std::setw(30) << std::left << "  -h, --help";
   std::cout << "Show this help list." << std::endl;
 }
 
 void InputHandler::_printUsage(void) const {
-  std::cerr << "./n_puzzle [-H|-m|-l] [-s|-c] [file]" << std::endl;
+  std::cerr << "./n_puzzle [-H|-m|-l] [-s|-c] [-a|-g|-u] [file]" << std::endl;
   std::cerr << "./n_puzzle [-h]" << std::endl;
 }
 
