@@ -1,0 +1,30 @@
+html {
+  background-color: whitesmoke;
+}
+.card {
+  margin: 0 auto;
+  max-width: unset;
+}
+.card-content {
+  padding: 0.75rem;
+}
+svg {
+  display: block;
+}
+b {
+  font-weight: 500;
+}
+.column {
+  padding-bottom: 0;
+}
+#help {
+  padding-top: 0.75rem;
+}
+@media screen and (max-width: 768px) {
+  .column {
+    text-align: left !important;
+  }
+  .column:not(:first-child) {
+    padding-top: 0.375rem;
+  }
+}

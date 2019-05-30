@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html style="background-color: whitesmoke;">
+<html>
   <head>
     <title>N-Puzzle</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
@@ -14,6 +14,7 @@
       rel="stylesheet"
       href="https://cdnjs.cloudflare.com/ajax/libs/bulma/0.7.5/css/bulma.min.css"
     />
+    <link rel="stylesheet" href="./index.css" />
   </head>
   <body>
     <div class="container">
@@ -32,8 +33,38 @@
               </span>
             </a>
           </header>
-          <div class="card-content" style="padding: .75rem;">
-            <!-- <span>Search time: </span> -->
+          <div class="card-content">
+            <div class="columns is-multiline">
+              <div class="column is-half">
+                <p>
+                  <b>Search time: </b><span id="search-time">0.1 sec.</span>
+                </p>
+              </div>
+              <div class="column is-half" style="text-align: right;">
+                <p><b>State: </b><span id="state-idx">1 / 1.</span></p>
+              </div>
+              <div class="column is-half">
+                <p>
+                  <b>Time complexity<sup>*</sup>: </b
+                  ><span id="time-complexity">0.</span>
+                </p>
+              </div>
+              <div class="column is-half" style="text-align: right;">
+                <p>
+                  <b>Size complexity<sup>**</sup>: </b
+                  ><span id="size-complexity">0.</span>
+                </p>
+              </div>
+            </div>
+            <div id="help">
+              <p>
+                * Total number of nodes ever selected (added to the 'opened
+                set').
+              </p>
+              <p>
+                ** Maximum number of nodes ever represented in memory.
+              </p>
+            </div>
           </div>
           <footer class="card-footer">
             <a class="card-footer-item" id="prev-state"

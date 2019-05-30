@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <algorithm>
 #include <chrono>
+#include <fstream>
 #include <list>
 #include <locale>
 #include <queue>
@@ -48,6 +49,7 @@ class Puzzle {
   std::unordered_map<std::string, std::vector<u_char>> _closedSet;
   std::chrono::system_clock::time_point _start;
   std::chrono::system_clock::time_point _end;
+  std::string _dataOutput = std::string();
 
   static const std::array<int, 4> _rowOffset;
   static const std::array<int, 4> _colOffset;
@@ -61,6 +63,7 @@ class Puzzle {
   static std::unordered_map<char, Algorithm> _getAlgoMap(void);
 
   const std::vector<u_char> _initFinalGrid(void) const;
+  void _writeToFile(void) const;
   void _printPath(const std::vector<u_char> &tiles);
   void _printPath(const Node *node);
   bool _isSwapSafe(const std::array<int, 2> &emptyTileCoords,

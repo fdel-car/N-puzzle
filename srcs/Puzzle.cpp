@@ -80,18 +80,55 @@ const std::vector<u_char> Puzzle::_initFinalGrid(void) const {
   return vector;
 }
 
+void Puzzle::_writeToFile(void) const {
+  std::ofstream file;
+  file.open("./public/data.json");
+  if (file.is_open()) {
+    file << _dataOutput;
+    file.close();
+  }
+}
+
 void Puzzle::_printPath(const std::vector<u_char>& tiles) {
   if (tiles.size() == 0) return;
   Node tmpNode(tiles);
   _printPath(_closedSet[tmpNode.ID]);
   std::cout << tmpNode << std::endl;
+
+  _dataOutput += "    [";
+  for (int y = 0; y < Puzzle::N; y++) {
+    for (int x = 0; x < Puzzle::N; x++) {
+      if (x != 0 && x != Puzzle::N) _dataOutput += ", ";
+      int tile = tiles[x + y * Puzzle::N];
+      _dataOutput += std::to_string(tile);
+    }
+    if (y != Puzzle::N - 1) _dataOutput += ", ";
+  }
+  _dataOutput += "],\n";
+
   _moveCount++;
 }
 
 // Should be used for the last node in the path only.
 void Puzzle::_printPath(const Node* node) {
+  _dataOutput +=
+      "{\n  \"size\": " + std::to_string(Puzzle::N) + ",\n  \"states\": [\n";
+
   _printPath(node->parentTiles);
   std::cout << *node << std::endl;
+
+  _dataOutput += "    [";
+  for (int y = 0; y < Puzzle::N; y++) {
+    for (int x = 0; x < Puzzle::N; x++) {
+      if (x != 0 && x != Puzzle::N) _dataOutput += ", ";
+      int tile = node->tiles[x + y * Puzzle::N];
+      _dataOutput += std::to_string(tile);
+    }
+    if (y != Puzzle::N - 1) _dataOutput += ", ";
+  }
+  _dataOutput +=
+      "]\n  ],\n  \"timeComplexity\": " + std::to_string(_timeComplexity) +
+      ",\n  \"sizeComplexity\": " + std::to_string(_sizeComplexity) + ",\n";
 
   // Set french locale for thousands separator
   std::locale oldLocale =
@@ -103,11 +140,15 @@ void Puzzle::_printPath(const Node* node) {
             << _sizeComplexity << '.' << std::endl;
   std::cout << "Number of moves required: " << _moveCount << '.' << std::endl;
   auto duration = std::chrono::duration<double>(_end - _start);
+  _dataOutput +=
+      "  \"searchTime\": " + std::to_string(duration.count()) + "\n}";
   std::cout << std::fixed << "Search time: " << duration.count() << " seconds."
             << std::endl;
 
   // Reset locale
   std::cout.imbue(oldLocale);
+
+  _writeToFile();
 }
 
 bool Puzzle::_isSwapSafe(const std::array<int, 2>& emptyTileCoords,
