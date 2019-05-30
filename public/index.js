@@ -131,9 +131,15 @@ window.onload = function() {
           resizeInterval = setTimeout(resizeAll, 60);
         });
 
-        $('#search-time').text(`${json.searchTime} sec.`);
-        $('#time-complexity').text(`${json.timeComplexity}.`);
-        $('#size-complexity').text(`${json.sizeComplexity}.`);
+        $('#search-time').text(
+          `${json.searchTime.toFixed(4).toLocaleString('fr-FR')} sec.`
+        );
+        $('#time-complexity').text(
+          `${json.timeComplexity.toLocaleString('fr-FR')}.`
+        );
+        $('#size-complexity').text(
+          `${json.sizeComplexity.toLocaleString('fr-FR')}.`
+        );
         updateStateIdx();
         renderSvg();
         setCardSize();
