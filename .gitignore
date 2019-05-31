@@ -4,6 +4,4 @@ n_puzzle
 *.o
 
 public/data.json
-
-# 42 puzzle generator
-puzzle_generator.py
+package-lock.json

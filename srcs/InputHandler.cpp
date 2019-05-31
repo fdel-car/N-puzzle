@@ -2,6 +2,7 @@
 #include "Puzzle.hpp"
 
 static const std::string errorFont = "\033[31;1m";
+static const std::string warningFont = "\033[33m";
 static const std::string resetFont = "\033[0m";
 
 static void ltrim(std::string &str) {
@@ -31,23 +32,14 @@ static std::string removeExtraSpaces(const std::string &input) {
 InputHandler::InputHandler(int argc, char **argv) {
   try {
     for (int i = 1; i < argc; i++) {
+      if (!_readyToParse) break;
       std::string currArg(argv[i]);
       if (currArg[0] == '-') {
-        if (currArg.find('h') != std::string::npos) {
-          if (argc != 2)
-            std::cout << "Warning: --help flag should be given alone."
-                      << std::endl;
-          _showHelp();
-          _readyToParse = false;
-          break;
-        }
-        if (_fileOpened)
-          throw invalid_usage("flag(s) must be given before the file.");
+        // TODO: Handle full name flag like '--help'
         _parseFlags(currArg.substr(1));
       } else {
         if (_fileOpened) throw invalid_usage("only one file can be supplied.");
-        if (i == argc - 1) _openFileStream(currArg);
-        _fileOpened = true;
+        _openFileStream(currArg);
       }
     }
   } catch (const invalid_usage &err) {
@@ -59,6 +51,12 @@ InputHandler::InputHandler(int argc, char **argv) {
 
 void InputHandler::_parseFlags(const std::string &flags) {
   for (auto flag : flags) {
+    if (flag == 'h') {
+      _showHelp();
+      _readyToParse = false;
+      // std::cout << warningFont << "Warning" << resetFont
+      // << ": --help flag should be given alone." << std::endl;
+    }
     auto itHMap = Node::hMap.find(flag);
     if (itHMap != Node::hMap.end()) {
       if (_hSelected)
@@ -77,6 +75,9 @@ void InputHandler::_parseFlags(const std::string &flags) {
     if (itAMap != Puzzle::algoMap.end()) {
       if (_algoSelected)
         throw invalid_usage("only one type of algorithm can be selected.");
+      if (itAMap->second == Puzzle::UniformCost && _hSelected)
+        std::cout << warningFont << "Warning" << resetFont
+                  << ": heuristic choice ignored with --uniform-cost." << std::endl;
       Puzzle::currAlgorithm = itAMap->second;
       _algoSelected = true;
       continue;
@@ -88,6 +89,9 @@ void InputHandler::_parseFlags(const std::string &flags) {
 }
 
 void InputHandler::_showHelp(void) const {
+  _printUsage();
+  std::cout << std::endl;
+  // TODO: Dynamically build the help based on static flags data
   std::cout << "Goal patterns:" << std::endl;
   std::cout << std::setw(30) << std::left << "  -s, --snail";
   std::cout << "Set the snail solution as the final grid state (default)."
@@ -131,8 +135,7 @@ void InputHandler::_showHelp(void) const {
 }
 
 void InputHandler::_printUsage(void) const {
-  std::cerr << "./n_puzzle [-H|-m|-l] [-s|-c] [-a|-g|-u] [file]" << std::endl;
-  std::cerr << "./n_puzzle [-h]" << std::endl;
+  std::cerr << "Usage: ./n_puzzle [-h] [-H | -m | -l] [-s | -c] [-a | -g | -u] [file]" << std::endl;
 }
 
 void InputHandler::_openFileStream(const std::string &fileName) {
@@ -149,6 +152,7 @@ void InputHandler::_openFileStream(const std::string &fileName) {
     error[0] = tolower(error[0]);
     throw std::invalid_argument(error + " (" + fileName + ").");
   }
+  _fileOpened = true;
 }
 
 void InputHandler::parseTiles(void) {
@@ -195,6 +199,8 @@ void InputHandler::parseTiles(void) {
               std::numeric_limits<u_char>::max() < value) {
             throw std::out_of_range("stouc: out of range");
           }
+          if (value >= Puzzle::totalSize)
+            throw std::logic_error(_errorString(tile, " is bigger than the max tile value for this puzzle."));
           startGrid[x + y * Puzzle::N] = static_cast<u_char>(value);
         } else
           throw std::invalid_argument(
@@ -205,7 +211,16 @@ void InputHandler::parseTiles(void) {
     }
   }
   if (_fileOpened) _ifs.close();
-  // TODO: Once the grid is loaded, verify it (no duplicates, no number bigger or equal than totalsize...)
+  _verifyGrid();
+}
+
+void InputHandler::_verifyGrid(void) {
+  std::vector<bool> bitset(Puzzle::totalSize, true);
+  for (auto tile : startGrid) {
+    int idx = static_cast<int>(tile);
+    if (bitset[idx]) bitset[idx] = false;
+    else throw std::logic_error("duplicated values inside the grid.");
+  }
 }
 
 InputHandler::~InputHandler(void) {}

@@ -33,6 +33,7 @@ class InputHandler {
   InputHandler(void);
   InputHandler(InputHandler const &src);
 
+  void _verifyGrid(void);
   void _parseFlags(const std::string &flags);
   void _showHelp(void) const;
   void _printUsage(void) const;
