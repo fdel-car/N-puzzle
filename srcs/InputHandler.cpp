@@ -54,6 +54,7 @@ void InputHandler::_parseFlags(const std::string &flags) {
     if (flag == 'h') {
       _showHelp();
       _readyToParse = false;
+      continue;
       // std::cout << warningFont << "Warning" << resetFont
       // << ": --help flag should be given alone." << std::endl;
     }
