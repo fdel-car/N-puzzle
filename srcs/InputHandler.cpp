@@ -77,7 +77,8 @@ void InputHandler::_parseFlags(const std::string &flags) {
         throw invalid_usage("only one type of algorithm can be selected.");
       if (itAMap->second == Puzzle::UniformCost && _hSelected)
         std::cout << warningFont << "Warning" << resetFont
-                  << ": heuristic choice ignored with --uniform-cost." << std::endl;
+                  << ": heuristic choice ignored with --uniform-cost."
+                  << std::endl;
       Puzzle::currAlgorithm = itAMap->second;
       _algoSelected = true;
       continue;
@@ -135,7 +136,9 @@ void InputHandler::_showHelp(void) const {
 }
 
 void InputHandler::_printUsage(void) const {
-  std::cerr << "Usage: ./n_puzzle [-h] [-H | -m | -l] [-s | -c] [-a | -g | -u] [file]" << std::endl;
+  std::cerr
+      << "Usage: ./n_puzzle [-h] [-H | -m | -l] [-s | -c] [-a | -g | -u] [file]"
+      << std::endl;
 }
 
 void InputHandler::_openFileStream(const std::string &fileName) {
@@ -155,6 +158,23 @@ void InputHandler::_openFileStream(const std::string &fileName) {
   _fileOpened = true;
 }
 
+void InputHandler::_normalizeLine(std::string &line) {
+  if (line.empty()) return;
+  // Remove everything after the hash
+  size_t hash = line.find('#');
+  line = line.substr(0, hash);
+  trim(line);
+  line = removeExtraSpaces(line);
+}
+
+int InputHandler::_tryToParseInt(const std::string &str) {
+  if (std::regex_match(str, _nbrRegex))
+    return std::stoi(str);
+  else
+    throw std::invalid_argument(
+        _errorString(str, " is not a valid integer value."));
+}
+
 void InputHandler::parseTiles(void) {
   if (!_readyToParse) return;
   std::string line, tile;
@@ -166,45 +186,38 @@ void InputHandler::parseTiles(void) {
 
   while (std::getline(is, line)) {
     _lineCount++;
-    // Remove everything after the hash
-    size_t hash = line.find('#');
-    line = line.substr(0, hash);
-    trim(line);
-    line = removeExtraSpaces(line);
-
+    _normalizeLine(line);
     if (line.empty()) continue;
+
     if (!firstLineParsed) {
-      if (std::regex_match(line, _nbrRegex)) {
-        Puzzle::N = std::stoi(line);
-        Puzzle::totalSize = Puzzle::N * Puzzle::N;
-        Puzzle::nbrLength = std::to_string(Puzzle::totalSize).length();
-        startGrid.resize(Puzzle::totalSize, 0);
-      } else
-        throw std::invalid_argument(
-            _errorString(line, " is not a valid integer value."));
+      Puzzle::N = _tryToParseInt(line);
+      Puzzle::totalSize = Puzzle::N * Puzzle::N;
+      Puzzle::nbrLength = std::to_string(Puzzle::totalSize).length();
+      startGrid.resize(Puzzle::totalSize, 0);
       firstLineParsed = true;
     } else {
+      if (y >= Puzzle::N)
+        throw std::logic_error(
+            "too many lines given (use '#' if you want to add some "
+            "comments).");
       for (x = 0; x < Puzzle::N; x++) {
         spacePos = line.find(' ', searchStart);
+        tile = line.substr(searchStart, spacePos - searchStart);
+        int value = _tryToParseInt(tile);
         if (spacePos == std::string::npos && x < Puzzle::N - 1)
           throw std::logic_error(
               _errorString(line, ", missing one (or more) value(s)."));
         else if (spacePos != std::string::npos && x == Puzzle::N - 1)
           throw std::logic_error(
               _errorString(line, ", too many values inside this row."));
-        tile = line.substr(searchStart, spacePos - searchStart);
-        if (std::regex_match(tile, _nbrRegex)) {
-          int value = std::stoi(tile);
-          if (std::numeric_limits<u_char>::min() > value ||
-              std::numeric_limits<u_char>::max() < value) {
-            throw std::out_of_range("stouc: out of range");
-          }
-          if (value >= Puzzle::totalSize)
-            throw std::logic_error(_errorString(tile, " is bigger than the max tile value for this puzzle."));
-          startGrid[x + y * Puzzle::N] = static_cast<u_char>(value);
-        } else
-          throw std::invalid_argument(
-              _errorString(tile, " is not a valid integer value."));
+        if (std::numeric_limits<u_char>::min() > value ||
+            std::numeric_limits<u_char>::max() < value) {
+          throw std::out_of_range("stouc: out of range");
+        }
+        if (value >= Puzzle::totalSize)
+          throw std::logic_error(_errorString(
+              tile, " is bigger than the max tile value for this puzzle."));
+        startGrid[x + y * Puzzle::N] = static_cast<u_char>(value);
         searchStart = spacePos + 1;
       }
       y++;
@@ -218,8 +231,10 @@ void InputHandler::_verifyGrid(void) {
   std::vector<bool> bitset(Puzzle::totalSize, true);
   for (auto tile : startGrid) {
     int idx = static_cast<int>(tile);
-    if (bitset[idx]) bitset[idx] = false;
-    else throw std::logic_error("duplicated values inside the grid.");
+    if (bitset[idx])
+      bitset[idx] = false;
+    else
+      throw std::logic_error("duplicated values inside the grid.");
   }
 }
 

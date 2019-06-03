@@ -34,10 +34,12 @@ class InputHandler {
   InputHandler(InputHandler const &src);
 
   void _verifyGrid(void);
+  void _normalizeLine(std::string &line);
   void _parseFlags(const std::string &flags);
   void _showHelp(void) const;
   void _printUsage(void) const;
   void _openFileStream(const std::string &fileName);
+  int _tryToParseInt(const std::string &value);
   const std::string _errorString(const std::string &elem,
                                  const std::string &error) const;
 
